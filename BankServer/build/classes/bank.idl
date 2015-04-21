@@ -1,0 +1,17 @@
+module BankServer
+{
+  interface bank
+  {
+   
+    string signIn(in string userid,in string password);
+    string getAccounts(in string accnum);
+    double getBalance(in string account);
+    string deposit(in string account,in string amount, in string userid);
+    string withdraw(in string account,in string amount, in string userid);
+    string getInfo(in string userid);
+    string addUser(in string userid, in string username,in string mobile,in string adress,in string email,in string usertype);
+    string addAccount(in string userid,in string accNo,in string initDeposit,in string accType);
+    string getAccountList(in string userid);
+    oneway void shutdown();
+  };
+};
