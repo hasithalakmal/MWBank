@@ -6,6 +6,7 @@
 package Aplication;
 
 import BankServer.*;
+import Lib.CMDcaller;
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NameComponent;
 import org.omg.CosNaming.NamingContextExt;
@@ -19,11 +20,27 @@ import org.omg.PortableServer.POAHelper;
  */
 public class ServerHome extends javax.swing.JFrame {
 
+    private String logtext;
+
     /**
      * Creates new form ServerHome
      */
     public ServerHome() {
-        initComponents();
+        CMDcaller cmd = new CMDcaller();
+        boolean x = cmd.isCorbaRun();
+        if (x) {
+            initComponents();
+            logtext = "Starting Server.....";
+            jTextArea1.setText(logtext);
+        } else {
+            System.err.println("Srver is not working");
+        }
+
+    }
+
+    public void setLogtext(String x) {
+        logtext = logtext + "\n" + x;
+        jTextArea1.setText(logtext);
     }
 
     /**
@@ -40,8 +57,9 @@ public class ServerHome extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jLabel5 = new javax.swing.JLabel();
+        jTextArea1 = new javax.swing.JTextArea();
 
         jLabel4.setText("jLabel4");
 
@@ -83,25 +101,47 @@ public class ServerHome extends javax.swing.JFrame {
                 .addComponent(jLabel3))
         );
 
-        jLabel5.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-        jScrollPane1.setViewportView(jLabel5);
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
+
+        jTextArea1.setEditable(false);
+        jTextArea1.setColumns(20);
+        jTextArea1.setFont(new java.awt.Font("Monospaced", 1, 12)); // NOI18N
+        jTextArea1.setRows(5);
+        jScrollPane1.setViewportView(jTextArea1);
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1)
+                .addContainerGap())
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 197, Short.MAX_VALUE)
+                .addContainerGap())
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 457, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 461, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1)
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(11, 11, 11)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 219, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -141,42 +181,40 @@ public class ServerHome extends javax.swing.JFrame {
                 new ServerHome().setVisible(true);
             }
         });
-        
-            try{
-      // create and initialize the ORB //// get reference to rootpoa &amp; activate the POAManager
-      ORB orb = ORB.init(args, null);      
-      POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
-      rootpoa.the_POAManager().activate();
- 
-      // create servant and register it with the ORB
-      bankObj addobj = new bankObj();
-      addobj.setORB(orb); 
- 
-      // get object reference from the servant
-      org.omg.CORBA.Object ref = rootpoa.servant_to_reference(addobj);
-      bank href = bankHelper.narrow(ref);
- 
-      org.omg.CORBA.Object objRef =  orb.resolve_initial_references("NameService");
-      NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
- 
-      NameComponent path[] = ncRef.to_name( "ABC" );
-      ncRef.rebind(path, href);
- 
-      System.out.println("Addition Server ready and waiting ...");
- 
-      // wait for invocations from clients
-      for (;;){
-	  orb.run();
-         // System.out.println("hello");
-      }
-    } 
- 
-      catch (Exception e) {
-        System.err.println("ERROR: " + e);
-        e.printStackTrace(System.out);
-      }
- 
-      System.out.println("HelloServer Exiting ...");
+
+        try {
+            // create and initialize the ORB //// get reference to rootpoa &amp; activate the POAManager
+            ORB orb = ORB.init(args, null);
+            POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
+            rootpoa.the_POAManager().activate();
+
+            // create servant and register it with the ORB
+            bankObj addobj = new bankObj();
+            addobj.setORB(orb);
+
+            // get object reference from the servant
+            org.omg.CORBA.Object ref = rootpoa.servant_to_reference(addobj);
+            bank href = bankHelper.narrow(ref);
+
+            org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
+            NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
+
+            NameComponent path[] = ncRef.to_name("ABC");
+            ncRef.rebind(path, href);
+
+            System.out.println("Addition Server ready and waiting ...");
+
+            // wait for invocations from clients
+            for (;;) {
+                orb.run();
+                // System.out.println("hello");
+            }
+        } catch (Exception e) {
+            System.err.println("ERROR: " + e);
+            e.printStackTrace(System.out);
+        }
+
+        System.out.println("HelloServer Exiting ...");
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -184,8 +222,9 @@ public class ServerHome extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextArea1;
     // End of variables declaration//GEN-END:variables
 }

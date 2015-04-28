@@ -18,13 +18,16 @@ public class ProsedeurControls {
     Connection con;
     String query;
     ResultSet rs;
+    private XMLReader xml;
 
    
 
     public ResultSet callProc(String procedure, String parameterSet) {
+        xml = new Lib.XMLReader();
         dbmc = new DataBaseManagement();
         con = (Connection) dbmc.setConnetction();
-        query = "call test." + procedure + parameterSet + ";";
+        query = "call "+xml.getDatabasename()+"."+ procedure + parameterSet + ";";
+       // query = "call test."+ procedure + parameterSet + ";";
         rs = dbmc.getResult(query, con);
         return rs;
 
@@ -33,7 +36,7 @@ public class ProsedeurControls {
     public ResultSet callProc(String procedure) {
         dbmc = new DataBaseManagement();
         con = (Connection) dbmc.setConnetction();
-        query = "call test." + procedure + "();";
+        query = "call "+xml.getDatabasename()+"."+ procedure + "();";
         rs = dbmc.getResult(query, con);
         return rs;
 

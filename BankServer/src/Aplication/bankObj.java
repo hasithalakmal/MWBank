@@ -6,6 +6,7 @@
 package Aplication;
 
 import BankServer.bankPOA;
+import Lib.PasswordEncoding;
 import Lib.ProsedeurControls;
 import Lib.RandomStringGenerator;
 import Lib.SendMailTLS;
@@ -26,9 +27,14 @@ class bankObj extends bankPOA {
     ProsedeurControls pc = new ProsedeurControls();
     String para;
     private ResultSet res;
+    private String pass;
+    ServerHome sh;
+
 
     public void setORB(ORB orb_val) {
         orb = orb_val;
+        sh = new ServerHome();
+        
     }
 
     // implement add() method
@@ -44,11 +50,14 @@ class bankObj extends bankPOA {
         try {
             if (res.next()) {
                 double bal = res.getDouble(4);
+                sh.setLogtext("Get balance : "+bal);
                 return bal;
             } else {
+                sh.setLogtext("Get balance : Error");
                 return -1;
             }
         } catch (SQLException ex) {
+            sh.setLogtext("Get balance : Error");
             return -1;
         }
     }
@@ -61,11 +70,14 @@ class bankObj extends bankPOA {
             if (res.next()) {
                 para = "('" + account + "','d'," + amount + ",'" + userid + "')";
                 res = pc.callProc("doTransaction", para);
+                sh.setLogtext("Deposit Money : Rs"+amount+" To : "+account+" By : "+userid);
                 return "Successfully do the deposit";
             } else {
+                sh.setLogtext("Deposit Money : Error");
                 return "Your account number is wrong";
             }
         } catch (SQLException ex) {
+            sh.setLogtext("Deposit Money : Error");
             return "Your account number is wrong";
         }
 
@@ -81,15 +93,19 @@ class bankObj extends bankPOA {
                 if (res.getDouble("accbalance") > 500 + amu) {
                     para = "('" + account + "','w'," + amount + ",'" + userid + "')";
                     res = pc.callProc("doTransaction", para);
+                     sh.setLogtext("Withdraw Money : Rs"+amount+" To : "+account+" By : "+userid);
                     return "Successfully do the withdraw";
                 } else {
+                    sh.setLogtext("Withdraw Money : Error");
                     return "Your account balence is insuffisunt";
                 }
 
             } else {
+                sh.setLogtext("Withdraw Money : Error");
                 return "Your account number is wrong";
             }
         } catch (SQLException ex) {
+            sh.setLogtext("Withdraw Money : Error");
             return "Your account number is wrong";
         }
     }
@@ -104,9 +120,11 @@ class bankObj extends bankPOA {
         try {
             if (res.next()) {
             } else {
+                sh.setLogtext("Add Account : Error");
                 return "User ID does not exsist ";
             }
         } catch (SQLException ex) {
+            sh.setLogtext("Add Account : Error");
             return "User ID does not exsist ";
         }
 
@@ -114,6 +132,7 @@ class bankObj extends bankPOA {
         res = pc.callProc("selectAccount", para);
         try {
             if (res.next()) {
+                sh.setLogtext("Add Account : Error");
                 return "Account Number is Exsisting";
             } else {
                 if (!Double.isNaN(depo)) {
@@ -122,9 +141,10 @@ class bankObj extends bankPOA {
                     // para = "('" + account +"','d',"+amount+ ",'" + userid + "')";
                     para = "('" + accNo + "','d'," + initDeposit + ",'adm1')";
                     res = pc.callProc("doTransaction", para);
-
+                    sh.setLogtext("Add Account : "+accNo+"with Deposit : "+depo);
                     return "Successfully Added to the System";
                 } else {
+                    sh.setLogtext("Add Account : Error");
                     return "Enter number for initial deosit";
                 }
             }
@@ -132,8 +152,10 @@ class bankObj extends bankPOA {
             if (Double.isNaN(depo)) {
                 para = "('" + accNo + "','" + username + "','" + accType + "'," + depo + ")";
                 res = pc.callProc("insertAccount", para);
+                sh.setLogtext("Add Account : "+accNo+"with Deposit : "+depo);
                 return "Successfully Added to the System";
             } else {
+                sh.setLogtext("Add Account : Error");
                 return "Enter number for initial deosit";
             }
         }
@@ -171,12 +193,14 @@ class bankObj extends bankPOA {
 
                     info = info + "\n" + tid + "\t" + ttype + "\t" + amnt + "\t" + time + "\t" + other;
                 }
-
+                sh.setLogtext("Get Account Details : "+accno);
                 return info;
             } else {
+                 sh.setLogtext("Get Account Details : Error");
                 return "Account is does not exsist";
             }
         } catch (SQLException ex) {
+            sh.setLogtext("Get Account Details : Error");
             return "Account is does not exsist";
         }
     }
@@ -210,12 +234,14 @@ class bankObj extends bankPOA {
                     String bal = (String) Double.toString(res.getDouble(4));
                     info = info + "\n" + accno + "\t" + acctype + "\t" + bal;
                 }
-
+                sh.setLogtext("Get User Details : "+uid);
                 return info;
             } else {
+                sh.setLogtext("Get User Details : Error");
                 return "User is does not exsist";
             }
         } catch (SQLException ex) {
+             sh.setLogtext("Get User Details : Error");
             return "User is does not exsist";
         }
     }
@@ -228,14 +254,15 @@ class bankObj extends bankPOA {
 
         try {
             if (res.next()) {
+                 sh.setLogtext("Add User : Error");
                 return "User is alredy in the system";
             } else {
                 para = "('" + userid + "','" + username + "','" + mobile + "','" + adress + "','" + email + "','" + usertype + "')";
                 pc.callProc("insertCustomer", para);
 
                 RandomStringGenerator rsg = new RandomStringGenerator();
-                String pass = rsg.nextSessionId();
-
+                pass = rsg.nextSessionId();
+                
                 para = "('" + userid + "','" + pass + "')";
                 pc.callProc("insertPassword", para);
 
@@ -246,15 +273,17 @@ class bankObj extends bankPOA {
                 res = pc.callProc("selectCustomer", para);
 
                 if (res.next()) {
-
+                     sh.setLogtext("Add User : "+userid);
                     return "Successfully Added";
                 } else {
+                     sh.setLogtext("Add User : Error");
                     return "Error on Added";
                 }
             }
 
             //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         } catch (SQLException ex) {
+             sh.setLogtext("Add User : Error");
             return "Error on Added " + ex;
         }
     }
@@ -268,15 +297,19 @@ class bankObj extends bankPOA {
             if (res.next()) {
                 String usertype = res.getString(8);
                 if ("M".equals(usertype)) {
+                     sh.setLogtext("SignIn User : "+userid);
                     return "M";
                 } else {
+                     sh.setLogtext("SignIn User : "+userid);
                     return "C";
                 }
             } else {
+                 sh.setLogtext("SignIn User : Error");
                 return "I";
             }
             // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         } catch (SQLException ex) {
+            sh.setLogtext("SignIn User : Error");
             return "I";
         }
 
@@ -293,8 +326,10 @@ class bankObj extends bankPOA {
                 String accno = res.getString(1);
                 acclist=acclist + accno+",";
             }
+            sh.setLogtext("Account List : "+userid);
             return acclist;
         } catch (SQLException ex) {
+            sh.setLogtext("Account List : Error");
             return "Error";
         }
     }
